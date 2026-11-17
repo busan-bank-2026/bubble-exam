@@ -1,0 +1,379 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>버블버블</title><link rel="stylesheet" href="../assets/book-02aa763011f88929.css"></head><body><div class="reader" data-toc="open"><header class="book-bar"><button type="button" class="toc-toggle" aria-expanded="true" aria-controls="toc">목차</button><span class="book-bar__title">버블버블</span></header><aside class="toc" id="toc"><p class="caption">목차 / CONTENTS</p><div class="toc-title">버블버블</div><a href="../index.html" data-chapter="0" title="표지" aria-current="false">표지</a><a href="01.html" data-chapter="1" title="1장. 프로젝트 뼈대" aria-current="false">1장. 프로젝트 뼈대</a><a href="02.html" data-chapter="2" title="2장. 게임 창과 배경" aria-current="false">2장. 게임 창과 배경</a><a href="03.html" data-chapter="3" title="3장. 플레이어 놓기" aria-current="false">3장. 플레이어 놓기</a><a href="04.html" data-chapter="4" title="4장. 좌우 이동" aria-current="false">4장. 좌우 이동</a><a href="05.html" data-chapter="5" title="5장. 벽에서 멈추기" aria-current="false">5장. 벽에서 멈추기</a><a href="06.html" data-chapter="6" title="6장. 발판과 중력" aria-current="false">6장. 발판과 중력</a><a href="07.html" data-chapter="7" title="7장. 점프" aria-current="false">7장. 점프</a><a href="08.html" data-chapter="8" title="8장. 물방울 쏘기" aria-current="false">8장. 물방울 쏘기</a><a href="09.html" data-chapter="9" title="9장. 물방울 사라지기" aria-current="false">9장. 물방울 사라지기</a><a href="10.html" data-chapter="10" title="10장. 적군 만들기" aria-current="false">10장. 적군 만들기</a><a href="11.html" data-chapter="11" title="11장. 공통 부모 Sprite" aria-current="false">11장. 공통 부모 Sprite</a><a href="12.html" data-chapter="12" title="12장. 적군 가두기" aria-current="false">12장. 적군 가두기</a><a href="13.html" data-chapter="13" title="13장. 갇힌 적군 터트리기" aria-current="true">13장. 갇힌 적군 터트리기</a><a href="14.html" data-chapter="14" title="14장. 배경음악" aria-current="false">14장. 배경음악</a><a href="15.html" data-chapter="15" title="15장. 게임오버" aria-current="false">15장. 게임오버</a><footer>15장</footer></aside><main class="reading"><section class="chapter" id="chapter-13"><div class="eyebrow">버블버블 / CHAPTER 13</div><span class="chapter-num" aria-hidden="true">13</span><h2>13장. 갇힌 적군 터트리기</h2><p>12장에서는 물방울에 닿은 적군을 가두고 움직임을 멈췄습니다. 이번 장에서는 펭귄이 갇힌 적군에 닿으면 적군을 터트립니다. 마지막 적군까지 사라지면 화면 가운데 맨 앞에 <code>CLEAR!</code>를 표시합니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-02aa9047663f"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/e20873608f1deb1f.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<h3>13-1 갇힌 적군에 닿으면 터트리기</h3>
+<p>갇힌 적군은 제자리에 멈춰 있지만 화면과 목록에는 그대로 남아 있습니다. 펭귄이 닿으면 9장에서 물방울을 지웠던 방법으로 적군도 지웁니다. 화면에서 그림을 없애고, 목록에서도 해당 적군을 빼야 합니다.</p>
+<h4>터진 상태와 제거 코드 추가하기</h4>
+<p><code>src/bubble/game/Enemy.java</code>와 <code>src/bubble/game/BubbleFrame.java</code>를 수정합니다. <code>Enemy</code>에는 터진 상태를 기록합니다. <code>BubbleFrame</code>의 <code>tick()</code>에는 펭귄과 적군의 충돌을 검사하는 코드를 추가합니다.</p>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/Enemy.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import javax.swing.ImageIcon;
+
+import lombok.Getter;
+
+public class Enemy extends Sprite {
+
+	private static final int SPEED = 2;
+
+	private ImageIcon enemyR;
+	private ImageIcon enemyL;
+	private ImageIcon enemyBubbled;
+	@Getter
+	private boolean bubbled;
+	@Getter
+	private boolean popped;
+
+	public Enemy(int x, int y, Direction direction) {
+		super(x, y, direction);
+		enemyR = new ImageIcon(&quot;image/enemyR.png&quot;);
+		enemyL = new ImageIcon(&quot;image/enemyL.png&quot;);
+		enemyBubbled = new ImageIcon(&quot;image/enemyBubbled.png&quot;);
+		if (direction == Direction.LEFT) {
+			setIcon(enemyL);
+		} else {
+			setIcon(enemyR);
+		}
+	}
+
+	public void move() {
+		if (direction == Direction.LEFT) {
+			x -= SPEED;
+		} else {
+			x += SPEED;
+		}
+		if (x &lt; 40) {
+			direction = Direction.RIGHT;
+		}
+		if (x &gt; 910) {
+			direction = Direction.LEFT;
+		}
+		keepInWall();
+		if (direction == Direction.LEFT) {
+			setIcon(enemyL);
+		} else {
+			setIcon(enemyR);
+		}
+		if (bubbled) {
+			setIcon(enemyBubbled);
+		}
+		setLocation(x, y);
+	}
+
+	public void trap() {
+		bubbled = true;
+		setIcon(enemyBubbled);
+	}
+
+	public void pop() {
+		popped = true;
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">13</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private ImageIcon enemyBubbled;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">14</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	@Getter</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">15</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private boolean bubbled;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">16</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	@Getter</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">17</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	private boolean popped;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">18</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">19</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	public Enemy(int x, int y, Direction direction) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">20</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		super(x, y, direction);</span></span><span class="file-diff__row file-diff__row--gap" data-kind="gap"><span class="file-diff__no" aria-hidden="true"></span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">⋯</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">56</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		bubbled = true;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">57</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setIcon(enemyBubbled);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">58</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">59</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">60</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	public void pop() {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">61</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		popped = true;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">62</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">63</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">}</span></span></code></div></div>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/BubbleFrame.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.Timer;
+
+public class BubbleFrame extends JFrame {
+
+	private Player player;
+	private ImageIcon brickIcon = new ImageIcon(&quot;image/brick.png&quot;);
+	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();
+	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();
+	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();
+
+	public BubbleFrame() {
+		setTitle(&quot;버블 게임&quot;);
+		setContentPane(new JLabel(new ImageIcon(&quot;image/background.png&quot;)));
+		setLayout(null);
+
+		player = new Player();
+		add(player);
+
+		for (int y = 0; y &lt; 640; y += 20) {
+			addBrick(0, y);
+			addBrick(960, y);
+		}
+
+		floors.add(new Rectangle(40, 620, 920, 20));
+		floors.add(new Rectangle(160, 490, 240, 20));
+		floors.add(new Rectangle(600, 490, 240, 20));
+		floors.add(new Rectangle(360, 360, 280, 20));
+		floors.add(new Rectangle(40, 230, 240, 20));
+		floors.add(new Rectangle(720, 230, 240, 20));
+		for (Rectangle floor : floors) {
+			for (int x = floor.x; x &lt; floor.x + floor.width; x += 40) {
+				addBrick(x, floor.y);
+			}
+		}
+
+		enemies.add(new Enemy(500, 570, Direction.LEFT));
+		enemies.add(new Enemy(880, 570, Direction.LEFT));
+		enemies.add(new Enemy(700, 440, Direction.LEFT));
+		for (Enemy enemy : enemies) {
+			add(enemy);
+		}
+
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(true);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(true);
+				case KeyEvent.VK_UP -&gt; player.jump();
+				case KeyEvent.VK_SPACE -&gt; shoot();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(false);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(false);
+				}
+			}
+		});
+
+		new Timer(16, e -&gt; tick()).start();
+
+		pack();
+		setResizable(false);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	private void tick() {
+		player.move();
+		player.fall(floors);
+		for (Enemy enemy : enemies) {
+			if (!enemy.isBubbled()) {
+				enemy.move();
+				enemy.fall(floors);
+			}
+		}
+		for (Bubble bubble : bubbles) {
+			bubble.move();
+			for (Enemy enemy : enemies) {
+				boolean hit = bubble.getBounds().intersects(enemy.getBounds());
+				if (hit &amp;&amp; !bubble.isPopped() &amp;&amp; !enemy.isBubbled()) {
+					enemy.trap();
+					bubble.pop();
+				}
+			}
+			if (bubble.isPopped()) {
+				remove(bubble);
+			}
+		}
+		bubbles.removeIf(bubble -&gt; bubble.isPopped());
+		for (Enemy enemy : enemies) {
+			boolean touch = player.getBounds().intersects(enemy.getBounds());
+			if (touch &amp;&amp; enemy.isBubbled()) {
+				enemy.pop();
+				remove(enemy);
+			}
+		}
+		enemies.removeIf(enemy -&gt; enemy.isPopped());
+		repaint();
+	}
+
+	private void shoot() {
+		Bubble bubble = new Bubble(player);
+		bubbles.add(bubble);
+		add(bubble);
+	}
+
+	private void addBrick(int x, int y) {
+		JLabel brick = new JLabel(brickIcon);
+		brick.setBounds(x, y, 40, 20);
+		add(brick);
+	}
+
+	public static void main(String[] args) {
+		new BubbleFrame();
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">103</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">104</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">105</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		bubbles.removeIf(bubble -&gt; bubble.isPopped());</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">106</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		for (Enemy enemy : enemies) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">107</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			boolean touch = player.getBounds().intersects(enemy.getBounds());</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">108</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			if (touch &amp;&amp; enemy.isBubbled()) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">109</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">				enemy.pop();</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">110</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">				remove(enemy);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">111</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">112</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">113</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		enemies.removeIf(enemy -&gt; enemy.isPopped());</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">114</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		repaint();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">115</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">116</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span></code></div></div>
+<h4>갇힌 적군에 닿았는지 확인하기</h4>
+<p><code>Enemy</code>에 추가한 <code>popped</code>는 적군이 터졌는지를 나타냅니다. 처음에는 <code>false</code>이고, <code>pop()</code>을 호출하면 <code>true</code>로 바뀝니다. 필드에 붙인 <code>@Getter</code> 덕분에 다른 클래스에서 <code>isPopped()</code>로 상태를 읽습니다.</p>
+<p><code>pop()</code>은 터졌다는 표시만 남깁니다. 화면과 목록에서 적군을 지우는 일은 적군을 관리하는 <code>BubbleFrame</code>이 맡습니다.</p>
+<p><code>tick()</code>에서는 <code>enemies</code>의 적군을 하나씩 꺼내 검사합니다. <code>getBounds()</code>로 펭귄과 적군의 사각형을 얻습니다. 이어서 <code>intersects()</code>로 두 사각형이 겹치는지 확인합니다. 12장에서는 물방울과 적군을 비교했다면, 이번에는 펭귄과 적군을 비교합니다.</p>
+<p>조건식 <code>touch &amp;&amp; enemy.isBubbled()</code>는 두 조건을 모두 만족해야 참입니다. 펭귄이 닿았고, 그 적군이 물방울에 갇혀 있어야 터집니다. 갇히지 않은 적군에 닿으면 이 조건을 만족하지 않습니다.</p>
+<h4>화면에서 지운 뒤 목록에서 빼기</h4>
+<p>조건을 만족하면 <code>enemy.pop()</code>으로 터진 상태를 기록합니다. 이어서 <code>remove(enemy)</code>로 창에서 적군을 제거합니다. 다만 창에서 제거해도 <code>enemies</code> 목록에는 적군이 남아 있습니다.</p>
+<p>목록에서 빼는 작업은 <code>for</code> 반복문이 끝난 뒤에 합니다. 향상된 <code>for</code>문으로 순회하는 도중 같은 목록에서 항목을 직접 제거하면 예외가 발생할 수 있기 때문입니다. 반복문 안에서는 터진 표시만 남깁니다. 반복문 뒤의 <code>enemies.removeIf(...)</code>가 표시된 적군을 한꺼번에 뺍니다.</p>
+<p>이 순서는 물방울을 지울 때와 같습니다. 적군마다 충돌을 검사하고, 터진 적군을 화면에서 제거합니다. 모든 적군의 검사가 끝나면 목록을 정리합니다. 마지막으로 <code>repaint()</code>를 호출해 화면을 다시 그립니다.</p>
+<h4>갇힌 적군을 모두 없애기</h4>
+<p><strong>실행 결과</strong></p>
+<p>이클립스에서 게임을 Run As → Java Application으로 실행합니다. 스페이스 키로 적군을 모두 가둔 뒤, 왼쪽 화살표 키로 펭귄을 움직여 갇힌 적군에 닿게 합니다.</p>
+<p>펭귄의 사각형과 겹친 적군부터 사라집니다. 갇힌 적군에 차례로 닿으면 적군이 하나도 남지 않습니다. 아직 클리어 표시는 없으므로, 적군이 사라진 화면만 보입니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-73c528b71c67"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/9f18ea6d10bb755a.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<h3>13-2 적군을 다 터트리면 CLEAR! 보이기</h3>
+<p>적군을 모두 없앴는지는 <code>enemies</code> 목록으로 판단합니다. 앞 절에서 터진 적군을 목록에서도 뺐으므로, 목록이 비면 남은 적군이 없다는 뜻입니다.</p>
+<p><code>CLEAR!</code> 그림은 게임을 시작할 때 미리 추가하되 숨겨 둡니다. 마지막 적군이 사라지면 그림을 보이게 바꿉니다.</p>
+<h4>클리어 그림을 숨겨 두고 목록 검사하기</h4>
+<p><code>src/bubble/game/BubbleFrame.java</code>를 수정합니다. 필드에 <code>clear</code>를 선언하고, 생성자에서 적군을 창에 추가한 뒤 클리어 그림을 준비합니다. <code>tick()</code>에는 적군 목록을 정리한 직후에 클리어 조건을 넣습니다.</p>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/BubbleFrame.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.Timer;
+
+public class BubbleFrame extends JFrame {
+
+	private Player player;
+	private ImageIcon brickIcon = new ImageIcon(&quot;image/brick.png&quot;);
+	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();
+	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();
+	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();
+	private JLabel clear;
+
+	public BubbleFrame() {
+		setTitle(&quot;버블 게임&quot;);
+		setContentPane(new JLabel(new ImageIcon(&quot;image/background.png&quot;)));
+		setLayout(null);
+
+		player = new Player();
+		add(player);
+
+		for (int y = 0; y &lt; 640; y += 20) {
+			addBrick(0, y);
+			addBrick(960, y);
+		}
+
+		floors.add(new Rectangle(40, 620, 920, 20));
+		floors.add(new Rectangle(160, 490, 240, 20));
+		floors.add(new Rectangle(600, 490, 240, 20));
+		floors.add(new Rectangle(360, 360, 280, 20));
+		floors.add(new Rectangle(40, 230, 240, 20));
+		floors.add(new Rectangle(720, 230, 240, 20));
+		for (Rectangle floor : floors) {
+			for (int x = floor.x; x &lt; floor.x + floor.width; x += 40) {
+				addBrick(x, floor.y);
+			}
+		}
+
+		enemies.add(new Enemy(500, 570, Direction.LEFT));
+		enemies.add(new Enemy(880, 570, Direction.LEFT));
+		enemies.add(new Enemy(700, 440, Direction.LEFT));
+		for (Enemy enemy : enemies) {
+			add(enemy);
+		}
+
+		clear = new JLabel(new ImageIcon(&quot;image/clear.png&quot;));
+		clear.setBounds(250, 258, 500, 124);
+		clear.setVisible(false);
+		add(clear, 0);
+
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(true);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(true);
+				case KeyEvent.VK_UP -&gt; player.jump();
+				case KeyEvent.VK_SPACE -&gt; shoot();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(false);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(false);
+				}
+			}
+		});
+
+		new Timer(16, e -&gt; tick()).start();
+
+		pack();
+		setResizable(false);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	private void tick() {
+		player.move();
+		player.fall(floors);
+		for (Enemy enemy : enemies) {
+			if (!enemy.isBubbled()) {
+				enemy.move();
+				enemy.fall(floors);
+			}
+		}
+		for (Bubble bubble : bubbles) {
+			bubble.move();
+			for (Enemy enemy : enemies) {
+				boolean hit = bubble.getBounds().intersects(enemy.getBounds());
+				if (hit &amp;&amp; !bubble.isPopped() &amp;&amp; !enemy.isBubbled()) {
+					enemy.trap();
+					bubble.pop();
+				}
+			}
+			if (bubble.isPopped()) {
+				remove(bubble);
+			}
+		}
+		bubbles.removeIf(bubble -&gt; bubble.isPopped());
+		for (Enemy enemy : enemies) {
+			boolean touch = player.getBounds().intersects(enemy.getBounds());
+			if (touch &amp;&amp; enemy.isBubbled()) {
+				enemy.pop();
+				remove(enemy);
+			}
+		}
+		enemies.removeIf(enemy -&gt; enemy.isPopped());
+		if (enemies.isEmpty()) {
+			clear.setVisible(true);
+		}
+		repaint();
+	}
+
+	private void shoot() {
+		Bubble bubble = new Bubble(player);
+		bubbles.add(bubble);
+		add(bubble);
+	}
+
+	private void addBrick(int x, int y) {
+		JLabel brick = new JLabel(brickIcon);
+		brick.setBounds(x, y, 40, 20);
+		add(brick);
+	}
+
+	public static void main(String[] args) {
+		new BubbleFrame();
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">18</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">19</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">20</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">21</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	private JLabel clear;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">22</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">23</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	public BubbleFrame() {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">24</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setTitle(&quot;버블 게임&quot;);</span></span><span class="file-diff__row file-diff__row--gap" data-kind="gap"><span class="file-diff__no" aria-hidden="true"></span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">⋯</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">52</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			add(enemy);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">53</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">54</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">55</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		clear = new JLabel(new ImageIcon(&quot;image/clear.png&quot;));</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">56</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		clear.setBounds(250, 258, 500, 124);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">57</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		clear.setVisible(false);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">58</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		add(clear, 0);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">59</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">60</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		addKeyListener(new KeyAdapter() {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">61</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			@Override</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">62</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			public void keyPressed(KeyEvent e) {</span></span><span class="file-diff__row file-diff__row--gap" data-kind="gap"><span class="file-diff__no" aria-hidden="true"></span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">⋯</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">117</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">118</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">119</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		enemies.removeIf(enemy -&gt; enemy.isPopped());</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">120</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		if (enemies.isEmpty()) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">121</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			clear.setVisible(true);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">122</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">123</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		repaint();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">124</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">125</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span></code></div></div>
+<h4>클리어 그림을 화면 맨 앞에 놓기</h4>
+<p><code>clear</code>는 제공받은 <code>image/clear.png</code>를 담는 <code>JLabel</code>입니다. <code>setBounds(250, 258, 500, 124)</code>로 화면 가운데에 놓일 위치와 크기를 정합니다. 처음에는 <code>setVisible(false)</code>로 숨깁니다. 숨겨진 컴포넌트도 창에 추가할 수 있습니다. 나중에 보이게 바꾸면 지정한 자리에 나타납니다.</p>
+<p><code>add(clear, 0)</code>의 두 번째 인수는 겹쳐 그리는 순서를 정하는 인덱스입니다. Swing에서는 이 순서를 <strong>Z 순서(Z-order)</strong>라고 합니다. 같은 컨테이너 안에서는 인덱스가 작은 컴포넌트가 앞에 표시됩니다.</p>
+<p>따라서 <code>0</code>번 자리에 추가한 <code>clear</code>는 벽돌보다 앞에 그려집니다. 위치만 가운데로 정하면 벽돌에 가려질 수 있으므로, 그리는 순서도 함께 정합니다.</p>
+<h4>목록을 비운 다음 클리어 판단하기</h4>
+<p><code>enemies.isEmpty()</code>는 적군 목록이 비었을 때 <code>true</code>를 반환합니다. 이 검사는 반드시 <code>enemies.removeIf(...)</code> 뒤에 둡니다. 그래야 이번 <code>tick()</code>에서 터진 마지막 적군까지 목록에서 뺀 뒤 판단합니다.</p>
+<p>목록이 비면 <code>clear.setVisible(true)</code>를 호출합니다. 숨겨 두었던 그림이 나타나고, 이어지는 <code>repaint()</code>가 변경된 화면을 다시 그립니다.</p>
+<p>클리어 뒤에도 <code>tick()</code>은 계속 호출됩니다. 적군 목록은 비어 있으므로 <code>clear</code>를 계속 보이는 상태로 둡니다. 매번 새 <code>JLabel</code>을 만들지 않으므로 클리어 그림이 쌓이지 않습니다. 이번 장에서는 클리어 그림만 표시하며 게임 루프는 그대로 이어집니다.</p>
+<h4>마지막 적군을 터트려 확인하기</h4>
+<p><strong>실행 결과</strong></p>
+<p>게임을 다시 실행하면 처음에는 <code>CLEAR!</code>가 보이지 않습니다. 적군을 가둔 뒤 펭귄으로 다가가 차례로 터트립니다. 적군이 하나라도 남아 있으면 클리어 그림은 계속 숨겨져 있습니다.</p>
+<p>마지막 적군을 터트리면 화면 가운데에 <code>CLEAR!</code>가 나타납니다. 그림과 벽돌이 겹치는 부분에서도 글자가 벽돌보다 앞에 보입니다. 적군은 모두 사라지고 펭귄만 남습니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-e4279985824b"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/96add8e59ff3b17c.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<h4>13장 완성 코드 보관하기</h4>
+<p>확인을 마치면 <code>src/bubble/game</code>의 이번 장 완성 코드를 <code>ex13</code>에 복사해 보관합니다. 다음 장에서는 이 코드에 배경음악을 추가합니다.</p><nav class="chapter-nav"><button type="button" class="text" data-prev="true" data-href="12.html">← 이전 장</button><span>13 / 15</span><button type="button" class="text" data-next="true" data-href="14.html">다음 장 →</button></nav></section></main></div><script src="../assets/book-fe9af60309390aae.js"></script></body></html>

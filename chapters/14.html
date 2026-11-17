@@ -1,0 +1,203 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>버블버블</title><link rel="stylesheet" href="../assets/book-02aa763011f88929.css"></head><body><div class="reader" data-toc="open"><header class="book-bar"><button type="button" class="toc-toggle" aria-expanded="true" aria-controls="toc">목차</button><span class="book-bar__title">버블버블</span></header><aside class="toc" id="toc"><p class="caption">목차 / CONTENTS</p><div class="toc-title">버블버블</div><a href="../index.html" data-chapter="0" title="표지" aria-current="false">표지</a><a href="01.html" data-chapter="1" title="1장. 프로젝트 뼈대" aria-current="false">1장. 프로젝트 뼈대</a><a href="02.html" data-chapter="2" title="2장. 게임 창과 배경" aria-current="false">2장. 게임 창과 배경</a><a href="03.html" data-chapter="3" title="3장. 플레이어 놓기" aria-current="false">3장. 플레이어 놓기</a><a href="04.html" data-chapter="4" title="4장. 좌우 이동" aria-current="false">4장. 좌우 이동</a><a href="05.html" data-chapter="5" title="5장. 벽에서 멈추기" aria-current="false">5장. 벽에서 멈추기</a><a href="06.html" data-chapter="6" title="6장. 발판과 중력" aria-current="false">6장. 발판과 중력</a><a href="07.html" data-chapter="7" title="7장. 점프" aria-current="false">7장. 점프</a><a href="08.html" data-chapter="8" title="8장. 물방울 쏘기" aria-current="false">8장. 물방울 쏘기</a><a href="09.html" data-chapter="9" title="9장. 물방울 사라지기" aria-current="false">9장. 물방울 사라지기</a><a href="10.html" data-chapter="10" title="10장. 적군 만들기" aria-current="false">10장. 적군 만들기</a><a href="11.html" data-chapter="11" title="11장. 공통 부모 Sprite" aria-current="false">11장. 공통 부모 Sprite</a><a href="12.html" data-chapter="12" title="12장. 적군 가두기" aria-current="false">12장. 적군 가두기</a><a href="13.html" data-chapter="13" title="13장. 갇힌 적군 터트리기" aria-current="false">13장. 갇힌 적군 터트리기</a><a href="14.html" data-chapter="14" title="14장. 배경음악" aria-current="true">14장. 배경음악</a><a href="15.html" data-chapter="15" title="15장. 게임오버" aria-current="false">15장. 게임오버</a><footer>15장</footer></aside><main class="reading"><section class="chapter" id="chapter-14"><div class="eyebrow">버블버블 / CHAPTER 14</div><span class="chapter-num" aria-hidden="true">14</span><h2>14장. 배경음악</h2><p>13장에서는 갇힌 적군을 모두 터트리면 화면에 <code>CLEAR!</code>를 표시했습니다. 이번 장에서는 게임을 실행할 때 배경음악을 재생합니다. 음악이 끝나면 처음부터 다시 재생되도록 만듭니다.</p>
+<p>화면에는 전처럼 펭귄과 적군이 나타납니다. 이번 장에서 달라지는 부분은 소리이므로, 완성한 뒤 직접 실행해서 들어야 합니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-6ae9bf045e95"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/9a526dabb821c652.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<h3>14-1 배경음악 반복 재생하기</h3>
+<p>소리 파일을 열고 재생을 준비하는 코드를 <code>Sound</code> 클래스로 묶습니다. 파일 경로를 전달받아 소리를 준비하도록 만듭니다. 다음 장의 게임오버 소리에도 같은 클래스를 사용할 수 있습니다.</p>
+<p>Java에서 짧은 소리를 메모리에 읽어 두고 재생할 때는 <strong>클립(Clip)</strong>을 사용합니다. 이번에는 제공받은 <code>sound/bgm.wav</code>를 클립에 읽어 들인 뒤 반복해서 재생합니다.</p>
+<h4>소리 클래스와 재생 코드 추가하기</h4>
+<p><code>src/bubble/game</code>에 <code>Sound.java</code>를 새로 만듭니다. 이어서 <code>BubbleFrame.java</code>의 생성자에 배경음악을 준비하고 반복 재생하는 코드를 추가합니다. <code>Timer</code>를 시작하는 줄 다음, <code>pack()</code>을 호출하기 전에 넣습니다.</p>
+<p>새 파일: <code>src/bubble/game/Sound.java</code></p>
+<p>수정 파일: <code>src/bubble/game/BubbleFrame.java</code></p>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff" data-new="true"><div class="file-diff__head code-label"><span class="file-diff__mark">새 파일</span><span class="file-diff__path">src/bubble/game/Sound.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.io.File;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+
+public class Sound {
+
+	private Clip clip;
+
+	public Sound(String file) {
+		try {
+			AudioInputStream stream = AudioSystem.getAudioInputStream(new File(file));
+			clip = AudioSystem.getClip();
+			clip.open(stream);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void loop() {
+		if (clip != null) {
+			clip.loop(Clip.LOOP_CONTINUOUSLY);
+		}
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">1</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">package bubble.game;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">2</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">3</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import java.io.File;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">4</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">5</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.sound.sampled.AudioInputStream;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">6</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.sound.sampled.AudioSystem;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">7</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.sound.sampled.Clip;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">8</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">9</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">public class Sound {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">10</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">11</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private Clip clip;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">12</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">13</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	public Sound(String file) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">14</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		try {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">15</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			AudioInputStream stream = AudioSystem.getAudioInputStream(new File(file));</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">16</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			clip = AudioSystem.getClip();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">17</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			clip.open(stream);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">18</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		} catch (Exception e) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">19</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			e.printStackTrace();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">20</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">21</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">22</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">23</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	public void loop() {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">24</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		if (clip != null) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">25</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			clip.loop(Clip.LOOP_CONTINUOUSLY);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">26</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">27</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">28</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">}</span></span></code></div></div>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/BubbleFrame.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.Timer;
+
+public class BubbleFrame extends JFrame {
+
+	private Player player;
+	private ImageIcon brickIcon = new ImageIcon(&quot;image/brick.png&quot;);
+	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();
+	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();
+	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();
+	private JLabel clear;
+
+	public BubbleFrame() {
+		setTitle(&quot;버블 게임&quot;);
+		setContentPane(new JLabel(new ImageIcon(&quot;image/background.png&quot;)));
+		setLayout(null);
+
+		player = new Player();
+		add(player);
+
+		for (int y = 0; y &lt; 640; y += 20) {
+			addBrick(0, y);
+			addBrick(960, y);
+		}
+
+		floors.add(new Rectangle(40, 620, 920, 20));
+		floors.add(new Rectangle(160, 490, 240, 20));
+		floors.add(new Rectangle(600, 490, 240, 20));
+		floors.add(new Rectangle(360, 360, 280, 20));
+		floors.add(new Rectangle(40, 230, 240, 20));
+		floors.add(new Rectangle(720, 230, 240, 20));
+		for (Rectangle floor : floors) {
+			for (int x = floor.x; x &lt; floor.x + floor.width; x += 40) {
+				addBrick(x, floor.y);
+			}
+		}
+
+		enemies.add(new Enemy(500, 570, Direction.LEFT));
+		enemies.add(new Enemy(880, 570, Direction.LEFT));
+		enemies.add(new Enemy(700, 440, Direction.LEFT));
+		for (Enemy enemy : enemies) {
+			add(enemy);
+		}
+
+		clear = new JLabel(new ImageIcon(&quot;image/clear.png&quot;));
+		clear.setBounds(250, 258, 500, 124);
+		clear.setVisible(false);
+		add(clear, 0);
+
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(true);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(true);
+				case KeyEvent.VK_UP -&gt; player.jump();
+				case KeyEvent.VK_SPACE -&gt; shoot();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(false);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(false);
+				}
+			}
+		});
+
+		new Timer(16, e -&gt; tick()).start();
+
+		Sound bgm = new Sound(&quot;sound/bgm.wav&quot;);
+		bgm.loop();
+
+		pack();
+		setResizable(false);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	private void tick() {
+		player.move();
+		player.fall(floors);
+		for (Enemy enemy : enemies) {
+			if (!enemy.isBubbled()) {
+				enemy.move();
+				enemy.fall(floors);
+			}
+		}
+		for (Bubble bubble : bubbles) {
+			bubble.move();
+			for (Enemy enemy : enemies) {
+				boolean hit = bubble.getBounds().intersects(enemy.getBounds());
+				if (hit &amp;&amp; !bubble.isPopped() &amp;&amp; !enemy.isBubbled()) {
+					enemy.trap();
+					bubble.pop();
+				}
+			}
+			if (bubble.isPopped()) {
+				remove(bubble);
+			}
+		}
+		bubbles.removeIf(bubble -&gt; bubble.isPopped());
+		for (Enemy enemy : enemies) {
+			boolean touch = player.getBounds().intersects(enemy.getBounds());
+			if (touch &amp;&amp; enemy.isBubbled()) {
+				enemy.pop();
+				remove(enemy);
+			}
+		}
+		enemies.removeIf(enemy -&gt; enemy.isPopped());
+		if (enemies.isEmpty()) {
+			clear.setVisible(true);
+		}
+		repaint();
+	}
+
+	private void shoot() {
+		Bubble bubble = new Bubble(player);
+		bubbles.add(bubble);
+		add(bubble);
+	}
+
+	private void addBrick(int x, int y) {
+		JLabel brick = new JLabel(brickIcon);
+		brick.setBounds(x, y, 40, 20);
+		add(brick);
+	}
+
+	public static void main(String[] args) {
+		new BubbleFrame();
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">79</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">80</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		new Timer(16, e -&gt; tick()).start();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">81</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">82</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		Sound bgm = new Sound(&quot;sound/bgm.wav&quot;);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">83</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		bgm.loop();</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">84</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">85</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		pack();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">86</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setResizable(false);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">87</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setLocationRelativeTo(null);</span></span></code></div></div>
+<p><code>Sound</code>의 생성자는 소리 파일의 경로를 받습니다. <code>new Sound(&quot;sound/bgm.wav&quot;)</code>를 실행하면 해당 파일을 열고 재생할 클립을 준비합니다. 생성자에서는 재생 준비까지만 하고, 실제 반복 재생은 <code>loop()</code>에서 시작합니다.</p>
+<p><code>sound/bgm.wav</code>는 실행할 때의 작업 폴더를 기준으로 찾는 상대 경로입니다. 앞 장과 같은 실행 설정을 사용합니다. <code>bubble</code> 프로젝트의 <code>sound</code> 폴더에 제공받은 <code>bgm.wav</code>가 있는지 확인합니다. 이 파일은 <code>src/bubble/game</code>에 넣지 않습니다.</p>
+<h4>파일을 열어 클립에 읽어 들이기</h4>
+<p><code>AudioSystem.getAudioInputStream(new File(file))</code>은 지정한 파일을 열어 <strong>오디오 입력 스트림(AudioInputStream)</strong>을 만듭니다. 오디오 입력 스트림은 파일의 소리 데이터를 읽어 들이는 통로입니다.</p>
+<p>이어서 <code>AudioSystem.getClip()</code>으로 재생에 사용할 클립을 얻습니다. <code>clip.open(stream)</code>은 입력 스트림에서 소리 데이터를 읽어 클립에 담습니다. 이 과정이 끝나면 클립을 재생할 준비가 됩니다.</p>
+<p>파일을 여는 일은 실패할 수 있으므로 생성자에서 <code>try</code>와 <code>catch</code>로 감쌉니다. 파일을 찾지 못하거나 소리 형식을 지원하지 않으면 <code>catch</code>로 넘어갑니다. <code>e.printStackTrace()</code>는 예외 내용과 발생 위치를 콘솔에 출력합니다.</p>
+<h4>음악이 끝나면 처음부터 다시 재생하기</h4>
+<p><code>Sound</code>의 <code>loop()</code>는 준비한 클립에 <code>clip.loop(Clip.LOOP_CONTINUOUSLY)</code>를 호출합니다. <code>Clip.LOOP_CONTINUOUSLY</code>는 반복 횟수를 제한하지 않는다는 뜻입니다. 재생을 시작한 뒤 음악이 끝에 도달하면 처음으로 돌아가 계속 재생합니다.</p>
+<p>앞의 <code>if (clip != null)</code>은 클립을 얻었는지 확인하는 조건입니다. 파일을 열거나 클립을 얻는 도중 예외가 나면 <code>clip</code>이 <code>null</code>로 남을 수 있습니다. 이 조건은 <code>clip</code>이 <code>null</code>인 상태에서 <code>clip.loop()</code>를 호출하는 일을 막습니다. 다만 클립을 얻은 뒤 <code>open()</code>에서 실패할 수도 있습니다. 따라서 <code>clip</code>이 <code>null</code>이 아니어도 재생 준비가 끝났다고 보장하지는 않습니다. 소리가 나지 않으면 콘솔의 예외 내용을 확인해야 합니다.</p>
+<p><code>BubbleFrame</code>에서는 <code>Sound bgm = new Sound(&quot;sound/bgm.wav&quot;)</code>로 배경음악을 준비합니다. 바로 다음의 <code>bgm.loop()</code>가 반복 재생을 시작합니다.</p>
+<p>클립이 재생되는 동안에도 다음 코드는 계속 실행됩니다. 음악이 끝나기를 기다리지 않고 <code>pack()</code> 등 창을 완성하는 코드가 이어서 실행됩니다. 배경음악을 반복하려고 게임 루프인 <code>tick()</code>에 재생 코드를 넣거나 별도의 <code>Timer</code>를 만들 필요는 없습니다.</p>
+<h4>게임을 실행해 배경음악 듣기</h4>
+<p><code>BubbleFrame</code>을 Run As → Java Application으로 실행합니다. 게임 창이 뜨면 배경음악이 들립니다. 펭귄을 움직이거나 물방울을 쏘는 동안에도 음악은 계속 재생됩니다.</p>
+<p><strong>실행 결과</strong></p>
+<figure class="book-figure" data-type="screenshot" id="figure-79d4a8a92b0b"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/d2668f60732e24d9.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<p>화면 구성은 앞 장과 같습니다. 펭귄과 적군이 보이고, 기존의 이동과 물방울 발사도 그대로 동작합니다. 사진에는 소리가 담기지 않으므로 직접 실행해서 음악이 한 번 끝날 때까지 기다려 봅니다. 끝난 뒤 처음 부분이 다시 들리면 반복 재생이 동작한 것입니다.</p>
+<p>소리가 들리지 않으면 콘솔에 예외가 출력되었는지 먼저 확인합니다. 파일을 찾지 못했다면 실행할 때의 작업 폴더와 <code>sound/bgm.wav</code>의 위치를 확인합니다. 예외가 없다면 컴퓨터의 음량과 소리 출력 장치를 확인합니다.</p>
+<h4>14장 완성 코드 보관하기</h4>
+<p>배경음악이 반복되는 것을 확인했으면 <code>src/bubble/game</code>의 완성 코드를 <code>ex14</code>에 복사합니다. 복사한 클래스의 패키지 선언은 <code>package bubble.ex14;</code>로 맞춥니다. 다음 장에서는 <code>src/bubble/game</code>의 코드를 이어서 수정합니다.</p><nav class="chapter-nav"><button type="button" class="text" data-prev="true" data-href="13.html">← 이전 장</button><span>14 / 15</span><button type="button" class="text" data-next="true" data-href="15.html">다음 장 →</button></nav></section></main></div><script src="../assets/book-fe9af60309390aae.js"></script></body></html>

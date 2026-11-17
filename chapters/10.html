@@ -1,0 +1,389 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data: blob:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"><meta name="viewport" content="width=device-width,initial-scale=1"><title>버블버블</title><link rel="stylesheet" href="../assets/book-02aa763011f88929.css"></head><body><div class="reader" data-toc="open"><header class="book-bar"><button type="button" class="toc-toggle" aria-expanded="true" aria-controls="toc">목차</button><span class="book-bar__title">버블버블</span></header><aside class="toc" id="toc"><p class="caption">목차 / CONTENTS</p><div class="toc-title">버블버블</div><a href="../index.html" data-chapter="0" title="표지" aria-current="false">표지</a><a href="01.html" data-chapter="1" title="1장. 프로젝트 뼈대" aria-current="false">1장. 프로젝트 뼈대</a><a href="02.html" data-chapter="2" title="2장. 게임 창과 배경" aria-current="false">2장. 게임 창과 배경</a><a href="03.html" data-chapter="3" title="3장. 플레이어 놓기" aria-current="false">3장. 플레이어 놓기</a><a href="04.html" data-chapter="4" title="4장. 좌우 이동" aria-current="false">4장. 좌우 이동</a><a href="05.html" data-chapter="5" title="5장. 벽에서 멈추기" aria-current="false">5장. 벽에서 멈추기</a><a href="06.html" data-chapter="6" title="6장. 발판과 중력" aria-current="false">6장. 발판과 중력</a><a href="07.html" data-chapter="7" title="7장. 점프" aria-current="false">7장. 점프</a><a href="08.html" data-chapter="8" title="8장. 물방울 쏘기" aria-current="false">8장. 물방울 쏘기</a><a href="09.html" data-chapter="9" title="9장. 물방울 사라지기" aria-current="false">9장. 물방울 사라지기</a><a href="10.html" data-chapter="10" title="10장. 적군 만들기" aria-current="true">10장. 적군 만들기</a><a href="11.html" data-chapter="11" title="11장. 공통 부모 Sprite" aria-current="false">11장. 공통 부모 Sprite</a><a href="12.html" data-chapter="12" title="12장. 적군 가두기" aria-current="false">12장. 적군 가두기</a><a href="13.html" data-chapter="13" title="13장. 갇힌 적군 터트리기" aria-current="false">13장. 갇힌 적군 터트리기</a><a href="14.html" data-chapter="14" title="14장. 배경음악" aria-current="false">14장. 배경음악</a><a href="15.html" data-chapter="15" title="15장. 게임오버" aria-current="false">15장. 게임오버</a><footer>15장</footer></aside><main class="reading"><section class="chapter" id="chapter-10"><div class="eyebrow">버블버블 / CHAPTER 10</div><span class="chapter-num" aria-hidden="true">10</span><h2>10장. 적군 만들기</h2><p>9장에서는 시간이 지난 물방울을 화면과 목록에서 지웠습니다. 이번 장에서는 적군 셋을 추가합니다. 적군은 키를 누르지 않아도 혼자 걷고, 양쪽 벽에 닿으면 방향을 바꿉니다. 발판을 벗어나면 플레이어처럼 바닥으로 떨어집니다.</p>
+<p>장을 마치면 적군들이 바닥에서 걷습니다. 왼쪽 벽에 먼저 닿은 적군은 오른쪽으로 돌아섭니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-1fb21eeca7ec"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/423ad00c47ae00df.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<h3>10-1 적군 셋 세우기</h3>
+<h4>적군의 그림과 목록 준비하기</h4>
+<p>적군도 플레이어처럼 <code>JLabel</code>에 그림 한 장을 담아 만듭니다. 위치와 바라보는 방향은 <code>Enemy</code> 클래스에서 관리합니다. 같은 클래스로 적군 셋을 만들되, 시작 위치를 다르게 지정합니다.</p>
+<p>물방울을 <code>bubbles</code>에 모았듯 적군은 <code>enemies</code>에 모읍니다. 적군마다 별도의 필드를 만드는 대신 목록에 담습니다. 그러면 게임 루프에서 모든 적군을 차례로 움직일 수 있습니다.</p>
+<p><strong>새 파일:</strong> <code>src/bubble/game/Enemy.java</code><br/>
+<strong>수정 파일:</strong> <code>src/bubble/game/BubbleFrame.java</code></p>
+<p><code>Enemy.java</code>를 만들고, <code>BubbleFrame.java</code>에 적군 목록과 적군을 추가하는 코드를 작성합니다. 적군을 만드는 코드는 발판을 배치하는 반복문 뒤, 키 리스너를 등록하는 코드 앞에 넣습니다.</p>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff" data-new="true"><div class="file-diff__head code-label"><span class="file-diff__mark">새 파일</span><span class="file-diff__path">src/bubble/game/Enemy.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+
+public class Enemy extends JLabel {
+
+	private int x;
+	private int y;
+	private Direction direction;
+	private ImageIcon enemyR;
+	private ImageIcon enemyL;
+
+	public Enemy(int x, int y, Direction direction) {
+		this.x = x;
+		this.y = y;
+		this.direction = direction;
+		enemyR = new ImageIcon(&quot;image/enemyR.png&quot;);
+		enemyL = new ImageIcon(&quot;image/enemyL.png&quot;);
+		if (direction == Direction.LEFT) {
+			setIcon(enemyL);
+		} else {
+			setIcon(enemyR);
+		}
+		setSize(50, 50);
+		setLocation(x, y);
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">1</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">package bubble.game;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">2</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">3</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.swing.ImageIcon;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">4</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.swing.JLabel;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">5</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">6</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">public class Enemy extends JLabel {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">7</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">8</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private int x;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">9</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private int y;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">10</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private Direction direction;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">11</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private ImageIcon enemyR;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">12</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private ImageIcon enemyL;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">13</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">14</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	public Enemy(int x, int y, Direction direction) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">15</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		this.x = x;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">16</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		this.y = y;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">17</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		this.direction = direction;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">18</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		enemyR = new ImageIcon(&quot;image/enemyR.png&quot;);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">19</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		enemyL = new ImageIcon(&quot;image/enemyL.png&quot;);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">20</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		if (direction == Direction.LEFT) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">21</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			setIcon(enemyL);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">22</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		} else {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">23</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			setIcon(enemyR);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">24</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">25</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setSize(50, 50);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">26</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setLocation(x, y);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">27</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">28</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">}</span></span></code></div></div>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/BubbleFrame.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.Timer;
+
+public class BubbleFrame extends JFrame {
+
+	private Player player;
+	private ImageIcon brickIcon = new ImageIcon(&quot;image/brick.png&quot;);
+	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();
+	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();
+	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();
+
+	public BubbleFrame() {
+		setTitle(&quot;버블 게임&quot;);
+		setContentPane(new JLabel(new ImageIcon(&quot;image/background.png&quot;)));
+		setLayout(null);
+
+		player = new Player();
+		add(player);
+
+		for (int y = 0; y &lt; 640; y += 20) {
+			addBrick(0, y);
+			addBrick(960, y);
+		}
+
+		floors.add(new Rectangle(40, 620, 920, 20));
+		floors.add(new Rectangle(160, 490, 240, 20));
+		floors.add(new Rectangle(600, 490, 240, 20));
+		floors.add(new Rectangle(360, 360, 280, 20));
+		floors.add(new Rectangle(40, 230, 240, 20));
+		floors.add(new Rectangle(720, 230, 240, 20));
+		for (Rectangle floor : floors) {
+			for (int x = floor.x; x &lt; floor.x + floor.width; x += 40) {
+				addBrick(x, floor.y);
+			}
+		}
+
+		enemies.add(new Enemy(500, 570, Direction.LEFT));
+		enemies.add(new Enemy(880, 570, Direction.LEFT));
+		enemies.add(new Enemy(700, 440, Direction.LEFT));
+		for (Enemy enemy : enemies) {
+			add(enemy);
+		}
+
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(true);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(true);
+				case KeyEvent.VK_UP -&gt; player.jump();
+				case KeyEvent.VK_SPACE -&gt; shoot();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(false);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(false);
+				}
+			}
+		});
+
+		new Timer(16, e -&gt; tick()).start();
+
+		pack();
+		setResizable(false);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	private void tick() {
+		player.move();
+		player.fall(floors);
+		for (Bubble bubble : bubbles) {
+			bubble.move();
+			if (bubble.isPopped()) {
+				remove(bubble);
+			}
+		}
+		bubbles.removeIf(bubble -&gt; bubble.isPopped());
+		repaint();
+	}
+
+	private void shoot() {
+		Bubble bubble = new Bubble(player);
+		bubbles.add(bubble);
+		add(bubble);
+	}
+
+	private void addBrick(int x, int y) {
+		JLabel brick = new JLabel(brickIcon);
+		brick.setBounds(x, y, 40, 20);
+		add(brick);
+	}
+
+	public static void main(String[] args) {
+		new BubbleFrame();
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">17</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private ImageIcon brickIcon = new ImageIcon(&quot;image/brick.png&quot;);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">18</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">19</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">20</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">21</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">22</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	public BubbleFrame() {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">23</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setTitle(&quot;버블 게임&quot;);</span></span><span class="file-diff__row file-diff__row--gap" data-kind="gap"><span class="file-diff__no" aria-hidden="true"></span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">⋯</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">44</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">45</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">46</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">47</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		enemies.add(new Enemy(500, 570, Direction.LEFT));</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">48</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		enemies.add(new Enemy(880, 570, Direction.LEFT));</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">49</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		enemies.add(new Enemy(700, 440, Direction.LEFT));</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">50</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		for (Enemy enemy : enemies) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">51</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			add(enemy);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">52</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">53</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">54</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		addKeyListener(new KeyAdapter() {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">55</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			@Override</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">56</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			public void keyPressed(KeyEvent e) {</span></span></code></div></div>
+<h4>시작 방향에 맞는 그림 고르기</h4>
+<p><code>Enemy</code>의 생성자는 시작 좌표 <code>x</code>, <code>y</code>와 방향 <code>direction</code>을 받습니다. 전달받은 값을 필드에 저장하므로, 적군마다 자신의 위치와 방향을 기억합니다.</p>
+<p><code>enemyR</code>에는 <code>image/enemyR.png</code>를, <code>enemyL</code>에는 <code>image/enemyL.png</code>를 담습니다. 생성자에서 방향이 <code>Direction.LEFT</code>이면 왼쪽 그림을 고르고, 그 외에는 오른쪽 그림을 고릅니다.</p>
+<p><code>setSize(50, 50)</code>은 적군의 크기를 정합니다. <code>setLocation(x, y)</code>은 적군의 왼쪽 위 모서리를 지정한 좌표에 놓습니다. 플레이어와 마찬가지로, 필드에 좌표를 저장한 뒤 <code>setLocation()</code>으로 화면 위치에 반영합니다.</p>
+<h4>목록에 담은 적군을 창에 추가하기</h4>
+<p><code>BubbleFrame</code>에서는 <code>enemies</code>에 적군 셋을 추가합니다. 시작 좌표는 각각 <code>(500, 570)</code>, <code>(880, 570)</code>, <code>(700, 440)</code>입니다. 세 적군 모두 <code>Direction.LEFT</code>를 전달하므로 처음에는 왼쪽을 봅니다.</p>
+<p>앞의 두 적군은 바닥에 놓이고, 세 번째 적군은 오른쪽 아래 발판에 놓입니다. 적군의 높이가 <code>50</code>이므로 아래쪽 끝은 각각 <code>620</code>, <code>620</code>, <code>490</code>이 됩니다. 적군의 아래쪽 끝이 바닥과 발판의 윗면에 맞닿는 위치입니다.</p>
+<p><code>enemies.add()</code>는 목록에 적군을 기록하는 작업입니다. 목록에 담았다고 화면에 나타나지는 않습니다. 뒤의 반복문에서 <code>add(enemy)</code>를 호출해야 창에 적군이 표시됩니다.</p>
+<h4>왼쪽을 보는 적군 셋 확인하기</h4>
+<p><strong>실행 결과</strong></p>
+<p>이클립스에서 앞 장과 같은 방법으로 Run As → Java Application을 실행합니다. 바닥에 적군 둘, 오른쪽 아래 발판에 적군 하나가 나타납니다. 셋 모두 왼쪽을 보고 서 있습니다.</p>
+<p>아직 게임 루프에서 적군의 위치를 바꾸지 않으므로, 기다려도 움직이지 않습니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-0630839db332"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/d9a1ffa3cad0816c.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<h3>10-2 적군이 혼자 걷고 벽에서 돌아서기</h3>
+<h4>매 틱 이동과 낙하 연결하기</h4>
+<p>플레이어는 누르고 있는 키에 따라 움직입니다. 적군은 키 입력 대신 자신이 기억한 방향을 따라 움직이게 만듭니다. 게임 루프가 반복될 때마다 같은 방향으로 조금씩 이동하면 혼자 걷는 모습이 됩니다.</p>
+<p>양쪽 벽에서는 이동을 멈추는 대신 방향을 바꿉니다. 발판 끝에서는 계속 걸어 나가도록 두고, 중력으로 아래로 떨어지게 합니다.</p>
+<p><strong>수정 파일:</strong> <code>src/bubble/game/Enemy.java</code><br/>
+<strong>수정 파일:</strong> <code>src/bubble/game/BubbleFrame.java</code></p>
+<p><code>Enemy.java</code>에 이동 속도, 중력, 세로 속도를 추가합니다. 이어서 <code>move()</code>와 <code>fall()</code>을 작성합니다. <code>BubbleFrame.java</code>의 <code>tick()</code>에는 적군 목록을 도는 반복문을 넣습니다.</p>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/Enemy.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.awt.Rectangle;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+
+public class Enemy extends JLabel {
+
+	private static final int SPEED = 2;
+	private static final int GRAVITY = 1;
+
+	private int x;
+	private int y;
+	private int dy;
+	private Direction direction;
+	private ImageIcon enemyR;
+	private ImageIcon enemyL;
+
+	public Enemy(int x, int y, Direction direction) {
+		this.x = x;
+		this.y = y;
+		this.direction = direction;
+		enemyR = new ImageIcon(&quot;image/enemyR.png&quot;);
+		enemyL = new ImageIcon(&quot;image/enemyL.png&quot;);
+		if (direction == Direction.LEFT) {
+			setIcon(enemyL);
+		} else {
+			setIcon(enemyR);
+		}
+		setSize(50, 50);
+		setLocation(x, y);
+	}
+
+	public void move() {
+		if (direction == Direction.LEFT) {
+			x -= SPEED;
+		} else {
+			x += SPEED;
+		}
+		if (x &lt; 40) {
+			x = 40;
+			direction = Direction.RIGHT;
+		}
+		if (x &gt; 910) {
+			x = 910;
+			direction = Direction.LEFT;
+		}
+		if (direction == Direction.LEFT) {
+			setIcon(enemyL);
+		} else {
+			setIcon(enemyR);
+		}
+		setLocation(x, y);
+	}
+
+	public void fall(List&lt;Rectangle&gt; floors) {
+		int bottom = y + 50;
+		dy += GRAVITY;
+		y += dy;
+		for (Rectangle floor : floors) {
+			boolean above = bottom &lt;= floor.y &amp;&amp; y + 50 &gt;= floor.y;
+			boolean across = x + 50 &gt; floor.x &amp;&amp; x &lt; floor.x + floor.width;
+			if (above &amp;&amp; across) {
+				y = floor.y - 50;
+				dy = 0;
+			}
+		}
+		setLocation(x, y);
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">1</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">package bubble.game;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">2</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">3</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">import java.awt.Rectangle;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">4</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">import java.util.List;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">5</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">6</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.swing.ImageIcon;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">7</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">import javax.swing.JLabel;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">8</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">9</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">public class Enemy extends JLabel {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">10</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">11</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	private static final int SPEED = 2;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">12</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	private static final int GRAVITY = 1;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">13</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">14</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private int x;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">15</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private int y;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">16</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	private int dy;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">17</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private Direction direction;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">18</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private ImageIcon enemyR;</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">19</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private ImageIcon enemyL;</span></span><span class="file-diff__row file-diff__row--gap" data-kind="gap"><span class="file-diff__no" aria-hidden="true"></span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">⋯</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">32</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setSize(50, 50);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">33</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		setLocation(x, y);</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">34</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">35</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">36</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	public void move() {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">37</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		if (direction == Direction.LEFT) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">38</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			x -= SPEED;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">39</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		} else {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">40</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			x += SPEED;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">41</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">42</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		if (x &lt; 40) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">43</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			x = 40;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">44</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			direction = Direction.RIGHT;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">45</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">46</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		if (x &gt; 910) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">47</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			x = 910;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">48</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			direction = Direction.LEFT;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">49</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">50</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		if (direction == Direction.LEFT) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">51</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			setIcon(enemyL);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">52</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		} else {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">53</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			setIcon(enemyR);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">54</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">55</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		setLocation(x, y);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">56</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">57</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text"></span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">58</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	public void fall(List&lt;Rectangle&gt; floors) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">59</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		int bottom = y + 50;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">60</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		dy += GRAVITY;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">61</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		y += dy;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">62</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		for (Rectangle floor : floors) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">63</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			boolean above = bottom &lt;= floor.y &amp;&amp; y + 50 &gt;= floor.y;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">64</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			boolean across = x + 50 &gt; floor.x &amp;&amp; x &lt; floor.x + floor.width;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">65</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			if (above &amp;&amp; across) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">66</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">				y = floor.y - 50;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">67</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">				dy = 0;</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">68</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">69</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">70</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		setLocation(x, y);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">71</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">	}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">72</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">}</span></span></code></div></div>
+<div class="file-diff file-diff--book code-wrap" data-kind="diff"><div class="file-diff__head code-label"><span class="file-diff__mark">수정 파일</span><span class="file-diff__path">src/bubble/game/BubbleFrame.java</span><div class="file-diff__tools code-tools"><span class="copy-result" aria-live="polite"></span><button type="button" class="small copy">복사</button></div></div><div class="file-diff__body"><code class="file-diff__code" data-code="package bubble.game;
+
+import java.awt.Rectangle;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.Timer;
+
+public class BubbleFrame extends JFrame {
+
+	private Player player;
+	private ImageIcon brickIcon = new ImageIcon(&quot;image/brick.png&quot;);
+	private List&lt;Rectangle&gt; floors = new ArrayList&lt;&gt;();
+	private List&lt;Bubble&gt; bubbles = new ArrayList&lt;&gt;();
+	private List&lt;Enemy&gt; enemies = new ArrayList&lt;&gt;();
+
+	public BubbleFrame() {
+		setTitle(&quot;버블 게임&quot;);
+		setContentPane(new JLabel(new ImageIcon(&quot;image/background.png&quot;)));
+		setLayout(null);
+
+		player = new Player();
+		add(player);
+
+		for (int y = 0; y &lt; 640; y += 20) {
+			addBrick(0, y);
+			addBrick(960, y);
+		}
+
+		floors.add(new Rectangle(40, 620, 920, 20));
+		floors.add(new Rectangle(160, 490, 240, 20));
+		floors.add(new Rectangle(600, 490, 240, 20));
+		floors.add(new Rectangle(360, 360, 280, 20));
+		floors.add(new Rectangle(40, 230, 240, 20));
+		floors.add(new Rectangle(720, 230, 240, 20));
+		for (Rectangle floor : floors) {
+			for (int x = floor.x; x &lt; floor.x + floor.width; x += 40) {
+				addBrick(x, floor.y);
+			}
+		}
+
+		enemies.add(new Enemy(500, 570, Direction.LEFT));
+		enemies.add(new Enemy(880, 570, Direction.LEFT));
+		enemies.add(new Enemy(700, 440, Direction.LEFT));
+		for (Enemy enemy : enemies) {
+			add(enemy);
+		}
+
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(true);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(true);
+				case KeyEvent.VK_UP -&gt; player.jump();
+				case KeyEvent.VK_SPACE -&gt; shoot();
+				}
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_LEFT -&gt; player.setLeft(false);
+				case KeyEvent.VK_RIGHT -&gt; player.setRight(false);
+				}
+			}
+		});
+
+		new Timer(16, e -&gt; tick()).start();
+
+		pack();
+		setResizable(false);
+		setLocationRelativeTo(null);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	private void tick() {
+		player.move();
+		player.fall(floors);
+		for (Enemy enemy : enemies) {
+			enemy.move();
+			enemy.fall(floors);
+		}
+		for (Bubble bubble : bubbles) {
+			bubble.move();
+			if (bubble.isPopped()) {
+				remove(bubble);
+			}
+		}
+		bubbles.removeIf(bubble -&gt; bubble.isPopped());
+		repaint();
+	}
+
+	private void shoot() {
+		Bubble bubble = new Bubble(player);
+		bubbles.add(bubble);
+		add(bubble);
+	}
+
+	private void addBrick(int x, int y) {
+		JLabel brick = new JLabel(brickIcon);
+		brick.setBounds(x, y, 40, 20);
+		add(brick);
+	}
+
+	public static void main(String[] args) {
+		new BubbleFrame();
+	}
+}
+"><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">83</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">	private void tick() {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">84</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		player.move();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">85</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		player.fall(floors);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">86</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		for (Enemy enemy : enemies) {</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">87</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			enemy.move();</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">88</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">			enemy.fall(floors);</span></span><span class="file-diff__row file-diff__row--add" data-kind="add"><span class="file-diff__no" aria-hidden="true">89</span><span class="file-diff__sign" aria-hidden="true">+</span><span class="file-diff__text">		}</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">90</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">		for (Bubble bubble : bubbles) {</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">91</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			bubble.move();</span></span><span class="file-diff__row file-diff__row--ctx" data-kind="ctx"><span class="file-diff__no" aria-hidden="true">92</span><span class="file-diff__sign" aria-hidden="true"></span><span class="file-diff__text">			if (bubble.isPopped()) {</span></span></code></div></div>
+<h4>방향에 따라 가로 좌표 바꾸기</h4>
+<p><code>SPEED</code>는 한 틱에 가로로 이동할 거리이며 값은 <code>2</code>입니다. <code>move()</code>는 <code>direction</code>이 <code>Direction.LEFT</code>이면 <code>x</code>에서 <code>SPEED</code>를 뺍니다. 오른쪽을 보고 있으면 더합니다.</p>
+<p>플레이어와 달리 왼쪽 키나 오른쪽 키를 누르는지 확인하지 않습니다. <code>move()</code>를 호출할 때마다 기억한 방향으로 이동하므로, 키를 모두 떼고 있어도 걷습니다.</p>
+<h4>벽 안쪽으로 위치를 맞추고 돌아서기</h4>
+<p>가로로 이동한 다음에는 양쪽 경계를 확인합니다. 왼쪽 경계는 <code>x = 40</code>, 오른쪽 경계는 <code>x = 910</code>입니다. 앞 장에서 플레이어의 이동 범위를 제한한 좌표와 같습니다.</p>
+<p><code>x &lt; 40</code>이면 적군이 왼쪽 경계를 넘어간 상태입니다. 이때 <code>x</code>를 <code>40</code>으로 맞추고 방향을 <code>Direction.RIGHT</code>로 바꿉니다. 다음 틱부터는 <code>x</code>가 증가하므로 오른쪽으로 걷습니다.</p>
+<p>오른쪽도 같은 방식입니다. <code>x &gt; 910</code>이면 <code>x</code>를 <code>910</code>으로 맞추고 방향을 <code>Direction.LEFT</code>로 바꿉니다. 좌표를 경계에 맞추기 때문에 적군이 벽 안으로 파고들지 않습니다.</p>
+<p>이 코드는 벽돌 그림과 겹치는지 직접 검사하지 않습니다. 적군이 움직일 수 있는 <code>x</code> 범위를 정해 벽에 닿았는지 판단합니다. 조건이 <code>&lt;</code>와 <code>&gt;</code>이므로, 정확히 경계 좌표에 도착한 순간에는 방향을 유지합니다. 다음 이동에서 경계를 넘으려 할 때 돌아섭니다.</p>
+<p>방향을 바꾼 뒤에는 <code>setIcon()</code>으로 그림도 다시 고릅니다. 왼쪽 벽에서 오른쪽으로 돌아섰다면 <code>enemyR</code>이 표시됩니다. 마지막의 <code>setLocation(x, y)</code>이 계산한 위치를 화면에 반영합니다.</p>
+<h4>발판을 벗어나면 중력으로 떨어지기</h4>
+<p>적군도 플레이어처럼 중력의 영향을 받습니다. <code>GRAVITY</code>는 매 틱 세로 속도에 더할 값이고, <code>dy</code>는 적군의 세로 속도입니다.</p>
+<p><code>fall()</code>은 먼저 <code>bottom = y + 50</code>으로 이동 전 아래쪽 끝을 기록합니다. 이어서 <code>dy</code>에 <code>GRAVITY</code>를 더하고, 그 속도만큼 <code>y</code>를 늘립니다. 화면에서는 <code>y</code>가 커질수록 아래로 내려갑니다. 착지하지 않고 떨어지는 동안에는 <code>dy</code>가 계속 커집니다.</p>
+<p>바닥이나 발판에 착지했는지는 <code>floors</code>의 사각형으로 판단합니다. <code>above</code>는 적군의 아래쪽 끝이 발판 윗면에 도달하거나 윗면을 지났는지 확인합니다. 이동 전에는 발판 윗면보다 위에 있거나 같은 높이여야 합니다. 이동 후에는 발판 윗면에 도달하거나 지나야 합니다.</p>
+<p><code>across</code>는 적군과 발판의 가로 범위가 겹치는지 확인합니다. 위에서 내려왔더라도 가로로 벗어나 있으면 그 발판에 설 수 없습니다.</p>
+<p>두 조건이 모두 참이면 <code>y</code>를 <code>floor.y - 50</code>으로 맞춥니다. 적군의 발이 발판 윗면에 놓이는 위치입니다. 이어서 <code>dy = 0</code>으로 세로 속도를 없앱니다.</p>
+<p>발판에 서 있는 동안에도 매 틱 중력을 적용합니다. 적군이 조금 내려가려 하면 착지 조건이 성립하여 다시 발판 위에 놓입니다. 반대로 발판 끝을 완전히 벗어나면 가로 범위가 겹치지 않습니다. 그때부터는 아래로 떨어지다가 바닥에 착지합니다.</p>
+<h4>하나의 게임 루프에서 적군 모두 움직이기</h4>
+<p><code>tick()</code>에 넣은 반복문은 <code>enemies</code>의 적군을 하나씩 꺼냅니다. 각 적군의 <code>move()</code>를 먼저 호출하고, 이어서 <code>fall(floors)</code>를 호출합니다.</p>
+<p>한 틱의 적군 동작은 가로 이동에서 시작합니다. <code>move()</code> 안에서 벽을 확인하고 필요하면 방향을 바꿉니다. 벽에서 돌아섰는지와 관계없이, 그다음에는 <code>fall(floors)</code>로 낙하와 착지를 계산합니다.</p>
+<p>이 순서 덕분에 발판 끝을 걸어 나간 틱에도 새 가로 위치를 기준으로 착지를 판단합니다. 더는 발판과 겹치지 않으면 바로 떨어지기 시작합니다.</p>
+<p>적군을 움직이기 위해 새 <code>Timer</code>를 만들 필요는 없습니다. 기존 <code>Timer</code>가 호출하는 <code>tick()</code>에서 플레이어, 적군, 물방울을 차례로 움직입니다. 적군마다 위치와 속도를 따로 기억하므로, 같은 반복문 안에서도 각자의 자리에서 걷고 떨어집니다.</p>
+<h4>발판에서 떨어지고 벽에서 돌아서는지 확인하기</h4>
+<p><strong>실행 결과</strong></p>
+<p>게임을 다시 실행하면 적군 셋이 왼쪽으로 걷습니다. 오른쪽 아래 발판에 있던 적군은 발판 끝을 벗어난 뒤 바닥으로 떨어집니다. 바닥에 착지한 뒤에도 왼쪽으로 계속 걷습니다.</p>
+<p>잠시 기다리면 처음에 <code>x = 500</code>에서 출발한 적군이 왼쪽 벽에 먼저 도착합니다. 벽 앞에서 오른쪽 그림으로 바뀌고, 오른쪽으로 걷기 시작합니다. 이때는 적군 셋이 모두 바닥에 있습니다.</p>
+<figure class="book-figure" data-type="screenshot" id="figure-a2b2b711c870"><div class="review"><span class="status-tag">확인 전</span></div><div class="figure-scroll"><img src="../assets/img/423ad00c47ae00df.png" alt="게임 창" class="shot" data-raster="true"/></div><figcaption>게임 창</figcaption></figure>
+<p>이번 장에서는 적군의 이동과 낙하만 만들었습니다. 플레이어나 물방울에 닿아도 아직 별도의 반응은 없습니다.</p>
+<h4>10장 완성 코드 보관하기</h4>
+<p>확인을 마치면 <code>src/bubble/game</code>의 이번 장 완성 코드를 <code>ex10</code>에 복사합니다. 복사본의 패키지 선언은 앞 장과 같은 방식으로 <code>bubble.ex10</code>에 맞춥니다. 다음 장의 코드는 계속 <code>src/bubble/game</code>에서 작성합니다.</p><nav class="chapter-nav"><button type="button" class="text" data-prev="true" data-href="09.html">← 이전 장</button><span>10 / 15</span><button type="button" class="text" data-next="true" data-href="11.html">다음 장 →</button></nav></section></main></div><script src="../assets/book-fe9af60309390aae.js"></script></body></html>
